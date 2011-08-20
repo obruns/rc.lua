@@ -9,7 +9,7 @@ require("naughty")
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
-beautiful.init("/usr/share/awesome/themes/default/theme.lua")
+beautiful.init("/usr/share/awesome/themes/zenburn/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
 terminal = "xterm"
@@ -26,13 +26,14 @@ modkey = "Mod4"
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
 {
-    awful.layout.suit.floating,
+    -- TODO evaluate and kick/reorder
     awful.layout.suit.tile,
     awful.layout.suit.tile.left,
     awful.layout.suit.tile.bottom,
     awful.layout.suit.tile.top,
     awful.layout.suit.fair,
     awful.layout.suit.fair.horizontal,
+    awful.layout.suit.floating,
     awful.layout.suit.spiral,
     awful.layout.suit.spiral.dwindle,
     awful.layout.suit.max,
@@ -43,10 +44,18 @@ layouts =
 
 -- {{{ Tags
 -- Define a tag table which hold all screen tags.
-tags = {}
+tags = {
+    names  = { "main", "inet", "im", "dev", "kvm", "xen", 7, 8, 9 },
+    layout = { layouts[1], layouts[1], layouts[1], layouts[1], layouts[1],
+               layouts[1], layouts[1], layouts[1], layouts[1] }
+}
 for s = 1, screen.count() do
     -- Each screen has its own tag table.
-    tags[s] = awful.tag({ 1, 2, 3, 4, 5, 6, 7, 8, 9 }, s, layouts[1])
+    -- defaults
+    -- tags[s] = awful.tag({ 1, 2, 3, 4, 5, 6, 7, 8, 9 }, s, layouts[1])
+    -- mine
+    tags[s] = awful.tag(tags.names, s, tags.layout)
+    -- TODO prepare for separate screens if available (e.g. im on LVDS)
 end
 -- }}}
 
@@ -59,6 +68,11 @@ myawesomemenu = {
    { "quit", awesome.quit }
 }
 
+awful.menu.menu_keys.down = { "j", "Down" }
+awful.menu.menu_keys.up = { "k", "Up" }
+awful.menu.menu_keys.exec = { "h", "Left" }
+awful.menu.menu_keys.back = { "l", "Right", "Return" }
+
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
                                     { "open terminal", terminal }
                                   }
@@ -69,6 +83,25 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 -- }}}
 
 -- {{{ Wibox
+-- Create textbox to display current keyboard mapping
+
+-- TODO this function call fails
+-- awesome will hang without widget and all
+function getCurrentXkbmap ()
+        f = assert (io.popen ("setxkbmap -query" , "r"))
+        s = assert (f:read ('*a'))
+        u = string.match (s, 'layout:.*')
+        r = string.gsub (u, 'layout:\ *', '');
+        return r
+end
+
+myxkbmapbox = widget({ type = "textbox" })
+-- TODO this function call fails
+--myxkbmapbox.text = getCurrentXkbmap ()
+-- TODO we now that us is the X.org startup default, but querying it is
+-- more sane!
+myxkbmapbox.text = "us"
+
 -- Create a textclock widget
 mytextclock = awful.widget.textclock({ align = "right" })
 
@@ -151,6 +184,7 @@ for s = 1, screen.count() do
         },
         mylayoutbox[s],
         mytextclock,
+        myxkbmapbox,
         s == 1 and mysystray or nil,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
@@ -223,7 +257,128 @@ globalkeys = awful.util.table.join(
                   mypromptbox[mouse.screen].widget,
                   awful.util.eval, nil,
                   awful.util.getdir("cache") .. "/history_eval")
-              end)
+              end),
+
+    -- client list
+    awful.key({ modkey            }, ";",     function()
+        awful.menu.clients( { width = 250 }, { keygrabber = true } )
+    end ),
+
+    -- floating? client move
+    awful.key({ modkey, "Mod1"     }, "h",     function() awful.client.moveresize ( -40,   0, 0, 0 ) end),
+    awful.key({ modkey, "Mod1"     }, "j",     function() awful.client.moveresize (   0, -40, 0, 0 ) end),
+    awful.key({ modkey, "Mod1"     }, "k",     function() awful.client.moveresize (   0,  40, 0, 0 ) end),
+    awful.key({ modkey, "Mod1"     }, "l",     function() awful.client.moveresize (  40,   0, 0, 0 ) end),
+
+    -- keyboard maps
+    awful.key({ modkey,            }, "e",
+                function()
+                        awful.util.spawn ("setxkbmap us")
+                        myxkbmapbox.text = "us"
+                end),
+    awful.key({ modkey,            }, "d",
+                function()
+                        awful.util.spawn ("setxkbmap de")
+                        myxkbmapbox.text = "de"
+                end),
+    awful.key({ modkey,            }, "s",
+                function()
+                        awful.util.spawn ("setxkbmap -model pc104 -layout 'us(altgr-intl)'")
+                        myxkbmapbox.text = "us-intl"
+                end),
+
+    awful.key({ modkey,            }, "`",
+                function()
+                        awful.util.spawn ("/usr/bin/alock \
+                                                -auth sha512:file=/home/obruns/.passwd_sha512 \
+                                                -cursor xcursor:file=/usr/share/alock/xcursors/xcursor-gentoo \
+                                                -bg blank color=black")
+                end),
+
+    awful.key({ modkey, "Shift"    }, "`", -- is ~
+                 function()
+                        -- if not sleeping, screen will go on immediately again
+                        -- must use 'spawn_with_shell', otherwise two
+                        -- commands won't work with 'spawn'
+                        awful.util.spawn_with_shell ("sleep 1 ; xset dpms force off")
+                 end),
+
+    -- define 'out-of-scope'
+    --
+    -- the key bindings are choosen with laptop keyboards in mind
+    -- additionally, moving the left and right hands from their standard
+    -- positions above asdf and jkl; is limited as much as possible
+    -- exceptions from this rule are allowed for
+    --   * seldomly used key combinations
+    --   * key combinations which have alternatives on the laptop keyboard
+
+    -- valid modifiers
+    -- Any
+    -- Mod1     Alt
+    -- Mod2     NumLock
+    -- Mod3     CapsLock
+    -- Mod4     Super / Logo
+    -- Mod5     ScrollLock
+    -- Shift
+    -- Lock
+    -- Control
+
+    -- possible combos
+    -- modkey, Mod1 (Alt)
+    --       , Shift
+    --       , Control
+    -- modkey
+
+    -- available keys
+    -- F1 - F12
+    --
+    -- the combination of the following is inspired by the US keyboard
+    -- layout!
+    --
+    -- [ ]
+    -- { }
+    -- , .
+    -- < >
+    -- ( )
+    -- : "
+    -- ; '
+    -- - =
+    -- _ +
+    -- / \
+    -- ? |
+    -- `
+    -- ~
+    -- Menu
+
+    -- Keypad: (will not use, not available if mobile, out of reach)
+    -- KP_0 - KP_9
+    -- KP_Home, KP_Next, KP_End, KP_Prior
+    -- KP_Insert, KP_Delete
+    -- KP_Divide, KP_Multiply, KP_Substract, KP_Add
+    -- KP_Enter
+    -- KP_Up, KP_Down, KP_Left, KP_Right
+
+    -- generic laptop backlight control
+    -- using the 'out-of-scope' keys here, because not needed when
+    -- mobile, anyway
+    awful.key({ modkey, "Mod1"     }, "Home",
+                function()
+                        awful.util.spawn ("sudo /usr/local/bin/tp-control backlight --inc 1") end),
+    awful.key({ modkey, "Mod1"     }, "End",
+                function()
+                        awful.util.spawn ("sudo /usr/local/bin/tp-control backlight --dec 1") end),
+    awful.key({ modkey, "Mod1"     }, "Prior",
+                function()
+                        awful.util.spawn ("sudo /usr/local/bin/tp-control backlight --set max") end),
+    awful.key({ modkey, "Mod1"     }, "Next",
+                function()
+                        awful.util.spawn ("sudo /usr/local/bin/tp-control backlight --set min") end)
+
+    -- xrandr quickswitches
+    -- enable second (use ~/bin/xrandr-home.sh)
+    -- disable second
+    -- activate beamer, both 1024x768?
+
 )
 
 clientkeys = awful.util.table.join(
@@ -310,9 +465,13 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "gimp" },
       properties = { floating = true } },
+    { rule = { class = "Gajim.py" },
+      properties = { floating = true, tag = tags[1][3] } },
+    { rule = { class = "psi" },
+      properties = { floating = true, tag = tags[1][3] } },
     -- Set Firefox to always map on tags number 2 of screen 1.
-    -- { rule = { class = "Firefox" },
-    --   properties = { tag = tags[1][2] } },
+    { rule = { class = "Firefox" },
+      properties = { tag = tags[screen.count()][2] } },
 }
 -- }}}
 
