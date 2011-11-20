@@ -83,6 +83,55 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 -- }}}
 
 -- {{{ Wibox
+-- Create a textbox and an imagebox showing battery stats
+
+function prepareTime ()
+        FileHnd, ErrStr = io.open ("/sys/class/power_supply/BAT0/energy_now", "r")
+
+        local charge_now = tonumber (FileHnd:read ())
+        FileHnd:close ()
+
+        FileHnd, ErrStr = io.open ("/sys/class/power_supply/BAT0/power_now", "r")
+        local power_now = tonumber (FileHnd:read ())
+        FileHnd:close ()
+        hours =  (charge_now/power_now)
+        seconds = hours * 3600
+        H = math.floor (hours)
+        M = (seconds - H * 3600)/60
+        return string.format ("%02d:%02d", H, M)
+end
+
+function percentLeft ()
+        FileHnd, ErrStr = io.open ("/sys/class/power_supply/BAT0/energy_full", "r")
+
+        local charge_full = tonumber (FileHnd:read ())
+        FileHnd:close ()
+
+        FileHnd, ErrStr = io.open ("/sys/class/power_supply/BAT0/energy_now", "r")
+
+        local charge_now = tonumber (FileHnd:read ())
+        FileHnd:close ()
+
+        percentage = charge_now * 100.0/charge_full
+        return  percentage
+end
+
+function prepareImage ()
+        if percentLeft () > 20 then
+                return "/home/obruns/.config/awesome/images/battery-green.png"
+        end
+        return "/home/obruns/.config/awesome/images/battery-orange.png"
+end
+
+mybatteryimagewidget = widget ({type = "imagebox", name = "batteryimagewidget", align = "right"})
+mybatteryimagewidget.image = image ("/home/obruns/.config/awesome/images/battery-green.png")
+
+mybatterywidget = widget ({type = "textbox", name = "batterywidget", align = "right" })
+mytimer = timer ({timeout = 300})
+mytimer:add_signal ("timeout", function() mybatterywidget.text = prepareTime () end)
+mytimer:add_signal ("timeout", function() mybatteryimagewidget.image = image(prepareImage ()) end)
+mytimer:start ()
+
 -- Create textbox to display current keyboard mapping
 
 -- TODO this function call fails
@@ -185,6 +234,8 @@ for s = 1, screen.count() do
         mylayoutbox[s],
         mytextclock,
         myxkbmapbox,
+        mybatterywidget,
+        mybatteryimagewidget,
         s == 1 and mysystray or nil,
         mytasklist[s],
         layout = awful.widget.layout.horizontal.rightleft
