@@ -36,9 +36,9 @@ layouts =
     awful.layout.suit.floating,
     awful.layout.suit.spiral,
     awful.layout.suit.spiral.dwindle,
-    awful.layout.suit.max,
-    awful.layout.suit.max.fullscreen,
-    awful.layout.suit.magnifier
+    awful.layout.suit.max,              -- the active client is maximized
+    awful.layout.suit.max.fullscreen,   -- " and the widget bar is not visible
+    awful.layout.suit.magnifier         -- the current active client is centered on top of the others
 }
 -- }}}
 
