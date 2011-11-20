@@ -318,7 +318,13 @@ globalkeys = awful.util.table.join(
         awful.menu.clients( { width = 250 }, { keygrabber = true } )
     end ),
 
-    -- floating? client move
+    -- floating client resize
+    awful.key({ modkey, "Mod1", "Shift"     }, "h",     function() awful.client.moveresize ( 0, 0, -20,   0 ) end),
+    awful.key({ modkey, "Mod1", "Shift"     }, "j",     function() awful.client.moveresize ( 0, 0,   0, -20 ) end),
+    awful.key({ modkey, "Mod1", "Shift"     }, "k",     function() awful.client.moveresize ( 0, 0,   0,  20 ) end),
+    awful.key({ modkey, "Mod1", "Shift"     }, "l",     function() awful.client.moveresize ( 0, 0,  20,   0 ) end),
+
+    -- floating client move
     awful.key({ modkey, "Mod1"     }, "h",     function() awful.client.moveresize ( -40,   0, 0, 0 ) end),
     awful.key({ modkey, "Mod1"     }, "j",     function() awful.client.moveresize (   0, -40, 0, 0 ) end),
     awful.key({ modkey, "Mod1"     }, "k",     function() awful.client.moveresize (   0,  40, 0, 0 ) end),
