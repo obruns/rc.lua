@@ -70,8 +70,8 @@ myawesomemenu = {
 
 awful.menu.menu_keys.down = { "j", "Down" }
 awful.menu.menu_keys.up = { "k", "Up" }
-awful.menu.menu_keys.exec = { "h", "Left" }
-awful.menu.menu_keys.back = { "l", "Right", "Return" }
+awful.menu.menu_keys.back = { "h", "Left" }
+awful.menu.menu_keys.exec = { "l", "Right", "Return" }
 
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
                                     { "open terminal", terminal }
