@@ -192,6 +192,60 @@ for s = 1, screen.count() do
 end
 -- }}}
 
+    local capi =
+    {
+        tag = tag,
+        screen = screen,
+        mouse = mouse,
+        client = client
+    }
+
+    --- Move a tag to an absolute position in the screen[]:tags() table.
+    -- @param new_index Integer absolute position in the table to insert.
+    function swapScreen(new_index, target_tag)
+        local target_tag = target_tag or awful.tag.selected()
+        local src_screen = target_tag.screen
+        local dst_screen = 1
+        if src_screen == 1 then dst_screen = 2 else dst_screen = 1 end
+        local src_tmp_tags = capi.screen[src_screen]:tags()
+        local dst_tmp_tags = capi.screen[dst_screen]:tags()
+
+        local swap_tag = 0
+        local new_index = 0
+
+        for i, t in ipairs(src_tmp_tags) do
+            if t == target_tag then
+                table.remove(src_tmp_tags, i)
+
+                table.remove(tags[src_screen], i)
+                table.remove(tags[dst_screen], i)
+
+                local swap_tag = table.remove (dst_tmp_tags, i)
+
+                swap_tag.screen = src_screen
+                target_tag.screen = dst_screen
+
+                for j,m in ipairs(target_tag:clients()) do
+                    m.screen = dst_screen
+                end
+
+                for k,n in ipairs(swap_tag:clients()) do
+                    n.screen = src_screen
+                end
+
+                table.insert(tags[dst_screen], i, target_tag)
+                table.insert(dst_tmp_tags, i, target_tag)
+
+                table.insert(tags[src_screen], i, swap_tag)
+                table.insert(src_tmp_tags, i, swap_tag)
+                break
+            end
+        end
+
+        capi.screen[src_screen]:tags(src_tmp_tags)
+        capi.screen[dst_screen]:tags(dst_tmp_tags)
+    end
+
 -- {{{ Mouse bindings
 root.buttons(awful.util.table.join(
     awful.button({ }, 3, function () mymainmenu:toggle() end),
@@ -302,6 +356,13 @@ globalkeys = awful.util.table.join(
                         -- commands won't work with 'spawn'
                         awful.util.spawn_with_shell ("sleep 1 ; xset dpms force off")
                  end),
+
+
+    awful.key({ modkey, "Shift"   }, "o",
+                function()
+                    swapScreen()
+                end),
+
 
     -- define 'out-of-scope'
     --
