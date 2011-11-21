@@ -87,12 +87,14 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 -- {{{ Wibox
 -- Create a textbox and an imagebox showing battery stats for BAT0 and BAT1
 myBAT0imagewidget = widget ({type = "imagebox", name = "BAT0imagewidget", align = "right"})
-myBAT0imagewidget.image = image ("/home/obruns/.config/awesome/images/battery-gray.png")
+myBAT0imagewidget.image = image (power_supply.prepareImage ("BAT0"))
 myBAT0widget = widget ({type = "textbox", name = "BAT0widget", align = "right" })
+myBAT0widget.text = power_supply.prepareTime ("BAT0")
 
 myBAT1imagewidget = widget ({type = "imagebox", name = "BAT1imagewidget", align = "right"})
-myBAT1imagewidget.image = image ("/home/obruns/.config/awesome/images/battery-gray.png")
+myBAT1imagewidget.image = image (power_supply.prepareImage ("BAT1"))
 myBAT1widget = widget ({type = "textbox", name = "BAT1widget", align = "right" })
+myBAT1widget.text = power_supply.prepareTime ("BAT1")
 
 mytimer = timer ({timeout = 300})
 mytimer:add_signal ("timeout", function() myBAT0widget.text = power_supply.prepareTime ("BAT0") end)
