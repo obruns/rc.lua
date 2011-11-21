@@ -6,6 +6,8 @@ require("awful.rules")
 require("beautiful")
 -- Notification library
 require("naughty")
+-- my custom power_supply 'library'
+require("power_supply")
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
@@ -83,98 +85,7 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 -- }}}
 
 -- {{{ Wibox
--- Create a textbox and an imagebox showing battery stats
-
-function prepareTime (power_supply)
-        FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/status", "r")
-        status = FileHnd:read ()
-        if status == "Unknown" then
-                return nil
-        end
-
-        FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/energy_now", "r")
-
-        if not FileHnd then
-                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/charge_now", "r")
-                if not FileHnd then
-                        -- tried both, 'charge_now' and 'energy_now', to no avail
-                        return nil
-                end
-                isCharge = true
-        end
-
-        local charge_now = tonumber (FileHnd:read ())
-        FileHnd:close ()
-
-        FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/power_now", "r")
-
-        if not FileHnd then
-                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/voltage_now", "r")
-                voltage_now = tonumber (FileHnd:read ())
-                FileHnd:close ()
-                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/current_now", "r")
-                current_now = tonumber (FileHnd:read ())
-                FileHnd:close ()
-                power_now = (voltage_now * current_now)/(1e7)
-        else
-                local power_now = tonumber (FileHnd:read ())
-                FileHnd:close ()
-        end
-        if power_now == 0 then
-                -- failsafe until this is properly handled
-                return "xx:--"
-        end
-        hours =  (charge_now/power_now)
-        seconds = hours * 3600
-        H = math.floor (hours)
-        M = (seconds - H * 3600)/60
-        return string.format ("%02d:%02d", H, M)
-end
-
-function percentLeft (power_supply)
-        FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/status", "r")
-        status = FileHnd:read ()
-        if status == "Unknown" then
-                return nil
-        end
-
-        FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/energy_full", "r")
-
-        if not FileHnd then
-                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/charge_now", "r")
-                if not FileHnd then
-                        -- tried both, 'charge_now' and 'energy_now', to no avail
-                        return "--:--"
-                end
-                isCharge = true
-        end
-
-        local charge_full = tonumber (FileHnd:read ())
-        FileHnd:close ()
-
-        if isCharge then
-                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/charge_now", "r")
-        else
-                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/energy_now", "r")
-        end
-
-        local charge_now = tonumber (FileHnd:read ())
-        FileHnd:close ()
-
-        percentage = charge_now * 100.0/charge_full
-        return  percentage
-end
-
-function prepareImage (power_supply)
-        if percentLeft (power_supply) == nil then
-                return "/home/obruns/.config/awesome/images/battery-gray.png"
-        end
-        if percentLeft (power_supply) > 20 then
-                return "/home/obruns/.config/awesome/images/battery-green.png"
-        end
-        return "/home/obruns/.config/awesome/images/battery-orange.png"
-end
-
+-- Create a textbox and an imagebox showing battery stats for BAT0 and BAT1
 myBAT0imagewidget = widget ({type = "imagebox", name = "BAT0imagewidget", align = "right"})
 myBAT0imagewidget.image = image ("/home/obruns/.config/awesome/images/battery-gray.png")
 myBAT0widget = widget ({type = "textbox", name = "BAT0widget", align = "right" })
@@ -184,10 +95,10 @@ myBAT1imagewidget.image = image ("/home/obruns/.config/awesome/images/battery-gr
 myBAT1widget = widget ({type = "textbox", name = "BAT1widget", align = "right" })
 
 mytimer = timer ({timeout = 300})
-mytimer:add_signal ("timeout", function() myBAT0widget.text = prepareTime ("BAT0") end)
-mytimer:add_signal ("timeout", function() myBAT0imagewidget.image = image(prepareImage ("BAT0")) end)
-mytimer:add_signal ("timeout", function() myBAT1widget.text = prepareTime ("BAT1") end)
-mytimer:add_signal ("timeout", function() myBAT1imagewidget.image = image(prepareImage ("BAT1")) end)
+mytimer:add_signal ("timeout", function() myBAT0widget.text = power_supply.prepareTime ("BAT0") end)
+mytimer:add_signal ("timeout", function() myBAT0imagewidget.image = image(power_supply.prepareImage ("BAT0")) end)
+mytimer:add_signal ("timeout", function() myBAT1widget.text = power_supply.prepareTime ("BAT1") end)
+mytimer:add_signal ("timeout", function() myBAT1imagewidget.image = image(power_supply.prepareImage ("BAT1")) end)
 mytimer:start ()
 
 -- Create textbox to display current keyboard mapping
