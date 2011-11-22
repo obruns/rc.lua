@@ -7,6 +7,10 @@ module ("power_supply")
 
 function prepareTime (power_supply)
         FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/status", "r")
+        if not FileHnd then
+                return nil
+        end
+
         status = FileHnd:read ()
         if status == "Unknown" then
                 return nil
@@ -53,6 +57,9 @@ end
 
 function percentLeft (power_supply)
         FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/status", "r")
+        if not FileHnd then
+                return nil
+        end
         status = FileHnd:read ()
         if status == "Unknown" then
                 return nil
