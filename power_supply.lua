@@ -68,7 +68,7 @@ function percentLeft (power_supply)
         FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/energy_full", "r")
 
         if not FileHnd then
-                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/charge_now", "r")
+                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/charge_full", "r")
                 if not FileHnd then
                         -- tried both, 'charge_now' and 'energy_now', to no avail
                         return "--:--"
