@@ -157,12 +157,12 @@ function getCurrentXkbmap ()
         return r
 end
 
-myxkbmapbox = widget({ type = "textbox" })
+myxkbmapbox = wibox.widget.textbox()
 -- TODO this function call fails
 --myxkbmapbox.text = getCurrentXkbmap ()
 -- TODO we now that us is the X.org startup default, but querying it is
 -- more sane!
-myxkbmapbox.text = "us"
+myxkbmapbox:set_text ("us")
 
 -- Create a textclock widget
 mytextclock = awful.widget.textclock()
@@ -244,6 +244,7 @@ for s = 1, screen.count() do
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
+    right_layout:add(myxkbmapbox)
     right_layout:add(mytextclock)
     right_layout:add(mylayoutbox[s])
 
@@ -399,17 +400,17 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,            }, "e",
                 function()
                         awful.util.spawn ("setxkbmap us")
-                        myxkbmapbox.text = "us"
+                        myxkbmapbox:set_text ("us")
                 end),
     awful.key({ modkey,            }, "d",
                 function()
                         awful.util.spawn ("setxkbmap de")
-                        myxkbmapbox.text = "de"
+                        myxkbmapbox:set_text ("de")
                 end),
     awful.key({ modkey,            }, "s",
                 function()
                         awful.util.spawn ("setxkbmap -model pc104 -layout 'us(altgr-intl)'")
-                        myxkbmapbox.text = "us-intl"
+                        myxkbmapbox:set_text ("us-intl")
                 end),
 
     awful.key({ modkey, "Mod1"     }, "p",
