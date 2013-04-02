@@ -574,7 +574,7 @@ awful.rules.rules = {
     { rule = { class = "psi" },
       properties = { tag = tags[1][3] } },
     -- Set Firefox to always map on tags number 2 of screen 1.
-    { rule = { class = "Firefox" },
+    { rule = { class = "Mozilla Developer Preview" },
       properties = { tag = tags[screen.count()][2] } },
 }
 -- }}}
