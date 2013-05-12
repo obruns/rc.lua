@@ -96,11 +96,15 @@ myBAT1imagewidget.image = image (power_supply.prepareImage ("BAT1"))
 myBAT1widget = widget ({type = "textbox", name = "BAT1widget", align = "right" })
 myBAT1widget.text = power_supply.prepareTime ("BAT1")
 
+myACimagewidget = widget ({type = "imagebox", name = "ACimagewidget", align = "right"})
+myACimagewidget.image = image (power_supply.prepareACImage ("AC"))
+
 mytimer = timer ({timeout = 300})
 mytimer:add_signal ("timeout", function() myBAT0widget.text = power_supply.prepareTime ("BAT0") end)
 mytimer:add_signal ("timeout", function() myBAT0imagewidget.image = image(power_supply.prepareImage ("BAT0")) end)
 mytimer:add_signal ("timeout", function() myBAT1widget.text = power_supply.prepareTime ("BAT1") end)
 mytimer:add_signal ("timeout", function() myBAT1imagewidget.image = image(power_supply.prepareImage ("BAT1")) end)
+mytimer:add_signal ("timeout", function() myACimagewidget.image = image(power_supply.prepareACImage ("AC")) end)
 mytimer:start ()
 
 -- Create textbox to display current keyboard mapping
@@ -205,6 +209,7 @@ for s = 1, screen.count() do
         mylayoutbox[s],
         mytextclock,
         myxkbmapbox,
+        myACimagewidget,
         myBAT1widget,
         myBAT1imagewidget,
         myBAT0widget,
@@ -371,11 +376,17 @@ globalkeys = awful.util.table.join(
                         myxkbmapbox.text = "us-intl"
                 end),
 
+    awful.key({ modkey, "Mod1"     }, "p",
+                function()
+                        awful.util.spawn_with_shell ("sudo $HOME/bin/wake-keyboard-on-xhci.sh")
+                end),
+
     awful.key({ modkey,            }, "`",
                 function()
+--                                                xcursor is not working properly atm
+--                                                -cursor xcursor:file=/usr/share/alock/xcursors/xcursor-gentoo \
                         awful.util.spawn ("/usr/bin/alock \
                                                 -auth sha512:file=/home/obruns/.passwd_sha512 \
-                                                -cursor xcursor:file=/usr/share/alock/xcursors/xcursor-gentoo \
                                                 -bg blank color=black")
                 end),
 
@@ -384,7 +395,7 @@ globalkeys = awful.util.table.join(
                         -- if not sleeping, screen will go on immediately again
                         -- must use 'spawn_with_shell', otherwise two
                         -- commands won't work with 'spawn'
-                        awful.util.spawn_with_shell ("sleep 1 ; xset dpms force off")
+                        awful.util.spawn_with_shell ("sleep 0.3 ; xset dpms force off")
                  end),
 
 
@@ -558,6 +569,8 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "Gajim.py" },
       properties = { tag = tags[1][3] } },
+    { rule = { class = "MuPDF" },
+      properties = { tag = tags[screen.count()][4] } },
     { rule = { class = "psi" },
       properties = { tag = tags[1][3] } },
     -- Set Firefox to always map on tags number 2 of screen 1.
