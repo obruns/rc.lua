@@ -5,13 +5,26 @@ local math = math
 
 module ("power_supply")
 
-function prepareTime (power_supply)
+function powerSupplyOnline (power_supply)
+        FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/online", "r")
+        if not FileHnd then
+                return nil
+        end
+
+        return FileHnd:read ()
+end
+
+function powerSupplyStatus (power_supply)
         FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/status", "r")
         if not FileHnd then
                 return nil
         end
 
-        status = FileHnd:read ()
+        return FileHnd:read ()
+end
+
+function prepareTime (power_supply)
+        status = powerSupplyStatus (power_supply)
         if status == "Unknown" then
                 return nil
         end
@@ -32,6 +45,8 @@ function prepareTime (power_supply)
 
         FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/power_now", "r")
 
+        power_now = 0
+
         if not FileHnd then
                 FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/voltage_now", "r")
                 voltage_now = tonumber (FileHnd:read ())
@@ -41,7 +56,7 @@ function prepareTime (power_supply)
                 FileHnd:close ()
                 power_now = (voltage_now * current_now)/(1e7)
         else
-                local power_now = tonumber (FileHnd:read ())
+                power_now = tonumber (FileHnd:read ())
                 FileHnd:close ()
         end
         if power_now == 0 then
@@ -56,10 +71,7 @@ function prepareTime (power_supply)
 end
 
 function percentLeft (power_supply)
-        FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/status", "r")
-        if not FileHnd then
-                return nil
-        end
+        status = powerSupplyStatus (power_supply)
         status = FileHnd:read ()
         if status == "Unknown" then
                 return nil
@@ -79,9 +91,8 @@ function percentLeft (power_supply)
         local charge_full = tonumber (FileHnd:read ())
         FileHnd:close ()
 
-        if isCharge then
-                FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/charge_now", "r")
-        else
+        FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/charge_now", "r")
+        if not FileHnd then
                 FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/energy_now", "r")
         end
 
@@ -92,7 +103,21 @@ function percentLeft (power_supply)
         return  percentage
 end
 
+function prepareACImage (power_supply)
+        -- only call with AC!
+        -- if powerSupplyOnline () returns nil, this is an error, we want to be noticed abou!
+        online = tonumber (powerSupplyOnline (power_supply))
+        if online == 1 then
+                return "/home/obruns/.config/awesome/images/power_supply_AC-online.png"
+        end
+        return "/home/obruns/.config/awesome/images/power_supply_AC-offline.png"
+end
+
 function prepareImage (power_supply)
+        if powerSupplyStatus (power_supply) == nil then
+                -- battery is physically unavailable
+                return "/home/obruns/.config/awesome/images/battery-unavailable.png"
+        end
         if percentLeft (power_supply) == nil then
                 return "/home/obruns/.config/awesome/images/battery-gray.png"
         end
