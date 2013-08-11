@@ -124,25 +124,25 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 
 -- {{{ Wibox
 -- Create a textbox and an imagebox showing battery stats for BAT0 and BAT1
-myBAT0imagewidget = widget ({type = "imagebox", name = "BAT0imagewidget", align = "right"})
-myBAT0imagewidget.image = image (power_supply.prepareImage ("BAT0"))
-myBAT0widget = widget ({type = "textbox", name = "BAT0widget", align = "right" })
-myBAT0widget.text = power_supply.prepareTime ("BAT0")
+myBAT0imagewidget = wibox.widget.imagebox () --{type = "imagebox", name = "BAT0imagewidget", align = "right"})
+myBAT0imagewidget:set_image (power_supply.prepareImage ("BAT0"))
+myBAT0widget = wibox.widget.textbox () --{type = "textbox", name = "BAT0widget", align = "right" })
+myBAT0widget:set_text (power_supply.prepareTime ("BAT0"))
 
-myBAT1imagewidget = widget ({type = "imagebox", name = "BAT1imagewidget", align = "right"})
-myBAT1imagewidget.image = image (power_supply.prepareImage ("BAT1"))
-myBAT1widget = widget ({type = "textbox", name = "BAT1widget", align = "right" })
-myBAT1widget.text = power_supply.prepareTime ("BAT1")
+myBAT1imagewidget = wibox.widget.imagebox () --{type = "imagebox", name = "BAT1imagewidget", align = "right"})
+myBAT1imagewidget:set_image (power_supply.prepareImage ("BAT1"))
+myBAT1widget = wibox.widget.textbox () --{type = "textbox", name = "BAT1widget", align = "right" })
+myBAT1widget:set_text (power_supply.prepareTime ("BAT1"))
 
-myACimagewidget = widget ({type = "imagebox", name = "ACimagewidget", align = "right"})
-myACimagewidget.image = image (power_supply.prepareACImage ("AC"))
+myACimagewidget = wibox.widget.imagebox ()--{type = "imagebox", name = "ACimagewidget", align = "right"})
+myACimagewidget:set_image (power_supply.prepareACImage ("AC"))
 
 mytimer = timer ({timeout = 300})
-mytimer:add_signal ("timeout", function() myBAT0widget.text = power_supply.prepareTime ("BAT0") end)
-mytimer:add_signal ("timeout", function() myBAT0imagewidget.image = image(power_supply.prepareImage ("BAT0")) end)
-mytimer:add_signal ("timeout", function() myBAT1widget.text = power_supply.prepareTime ("BAT1") end)
-mytimer:add_signal ("timeout", function() myBAT1imagewidget.image = image(power_supply.prepareImage ("BAT1")) end)
-mytimer:add_signal ("timeout", function() myACimagewidget.image = image(power_supply.prepareACImage ("AC")) end)
+mytimer:connect_signal ("timeout", function() myBAT0widget:set_text (power_supply.prepareTime ("BAT0")) end)
+mytimer:connect_signal ("timeout", function() myBAT0imagewidget:set_image (power_supply.prepareImage ("BAT0")) end)
+mytimer:connect_signal ("timeout", function() myBAT1widget:set_text (power_supply.prepareTime ("BAT1")) end)
+mytimer:connect_signal ("timeout", function() myBAT1imagewidget:set_image (power_supply.prepareImage ("BAT1")) end)
+mytimer:connect_signal ("timeout", function() myACimagewidget:set_image (power_supply.prepareACImage ("AC")) end)
 mytimer:start ()
 
 -- Create textbox to display current keyboard mapping
@@ -244,6 +244,11 @@ for s = 1, screen.count() do
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
+    right_layout:add(myBAT0imagewidget)
+    right_layout:add(myBAT0widget)
+    right_layout:add(myBAT1imagewidget)
+    right_layout:add(myBAT1widget)
+    right_layout:add(myACimagewidget)
     right_layout:add(myxkbmapbox)
     right_layout:add(mytextclock)
     right_layout:add(mylayoutbox[s])

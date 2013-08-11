@@ -26,7 +26,7 @@ end
 function prepareTime (power_supply)
         status = powerSupplyStatus (power_supply)
         if status == "Unknown" then
-                return nil
+                return ""
         end
 
         FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/energy_now", "r")
@@ -35,7 +35,7 @@ function prepareTime (power_supply)
                 FileHnd, ErrStr = io.open ("/sys/class/power_supply/" .. power_supply .. "/charge_now", "r")
                 if not FileHnd then
                         -- tried both, 'charge_now' and 'energy_now', to no avail
-                        return nil
+                        return ""
                 end
                 isCharge = true
         end
